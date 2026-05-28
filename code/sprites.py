@@ -2,9 +2,15 @@ from typing import Any
 
 from settings import *
 
-class CollisionSprite(pygame.sprite.Sprite):
-    def __init__(self, pos, size, *groups) -> None:
+class Sprite(pygame.sprite.Sprite):
+    def __init__(self, pos, surf, *groups):
         super().__init__(*groups)
-        self.image = pygame.Surface(size)
-        self.image.fill("#805B91")
-        self.rect = self.image.get_frect(center = pos)
+        self.image = surf
+        self.rect = self.image.get_frect(topleft = pos)
+
+
+class CollisionSprite(pygame.sprite.Sprite):
+    def __init__(self, pos, surf, *groups):
+        super().__init__(*groups)
+        self.image = surf
+        self.rect = self.image.get_frect(topleft = pos)
