@@ -1,5 +1,4 @@
-from settings import *
-
+from imports import *
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, collision_sprites, *groups):
@@ -14,7 +13,7 @@ class Player(pygame.sprite.Sprite):
 
         # movement
         self.player_direction = pygame.math.Vector2(0, 0)
-        self.player_speed = PLAYER_SPEED
+        self.player_speed = 500
 
         # animation
         self.frame_index = 0

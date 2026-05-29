@@ -1,17 +1,15 @@
-from pygame import Surface
-from pygame.rect import FRect, Rect
-
-from settings import *
+from imports import *
 
 class AllSprites(pygame.sprite.Group):
-    def __init__(self, *sprites):
+    def __init__(self, settings, *sprites):
         super().__init__(*sprites)
+        self.settings = settings
         self.display_surface = pygame.display.get_surface()
         self.offset = pygame.Vector2()
 
     def draw_custom(self, target_pos):
-        self.offset.x = -(target_pos[0] - WINDOW_WIDTH / 2)
-        self.offset.y = -(target_pos[1] - WINDOW_HEIGHT / 2)
+        self.offset.x = -(target_pos[0] - self.settings.window_width / 2)
+        self.offset.y = -(target_pos[1] - self.settings.window_height / 2)
 
         ground_sprites = [sprite for sprite in self if hasattr(sprite, 'ground')]
         object_sprites = [sprite for sprite in self if hasattr(sprite, 'object')]
