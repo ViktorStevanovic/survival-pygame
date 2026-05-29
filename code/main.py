@@ -8,8 +8,11 @@ from groups import AllSprites
 
 class Game():
     def __init__(self) -> None:
+        pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
         pygame.display.set_caption('Survival')
+
+        fullscreen_mode = False
 
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SCALED, vsync=1)
         self.running = True
@@ -19,11 +22,12 @@ class Game():
         self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
         self.bullet_sprites = pygame.sprite.Group()
+        self.enemy_sprites = pygame.sprite.Group()
 
         # gun timer
         self.can_shoot = True
         self.shoot_time = 0
-        self.gun_cooldown = 600
+        self.gun_cooldown = 100
 
         # spawn locations
         self.enemy_spawn_points = []
@@ -31,10 +35,13 @@ class Game():
         self.setup()
 
     def input(self):
-        keys = pygame.mouse.get_pressed()
-        if keys[0] and self.can_shoot:
+        keys = pygame.key.get_pressed()
+        mouse_keys = pygame.mouse.get_pressed()
+
+        if mouse_keys[0] and self.can_shoot:
             pos = self.gun.rect.center + self.gun.player_direction * 50
             Bullet(pos, self.bullet_image, self.gun.player_direction, self.all_sprites, self.bullet_sprites)
+            self.shoot_sound.play()
             self.can_shoot = False
             self.shoot_time = pygame.time.get_ticks()
 
@@ -60,6 +67,15 @@ class Game():
     def setup(self):
         # load images
         self.load_images()
+
+        # load sounds
+        self.impact_sound = pygame.mixer.Sound(join(BASE_DIR, 'audio', 'impact.ogg'))
+        self.game_music = pygame.mixer.music.load(join(BASE_DIR, 'audio', 'music.wav'))
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)  # -1 = loop
+
+        self.shoot_sound = pygame.mixer.Sound(join(BASE_DIR, 'audio', 'shoot.wav'))
+        self.shoot_sound.set_volume(1)
 
         # custom event
         self.spawn_enemy_event = pygame.event.custom_type()
@@ -90,7 +106,7 @@ class Game():
         enemy_type = list(self.enemy_frames)[randint(0, (len(self.enemy_frames) - 1))]
         spawn_pos = self.enemy_spawn_points[randint(0, (len(self.enemy_spawn_points) - 1))]
 
-        Enemy(spawn_pos, self.enemy_frames[enemy_type], self.player, self.collision_sprites, self.all_sprites)
+        Enemy(spawn_pos, self.enemy_frames[enemy_type], self.player, self.collision_sprites, self.enemy_sprites, self.all_sprites)
 
     def run(self):
         while self.running:
@@ -112,6 +128,16 @@ class Game():
             # draw
             self.display_surface.fill(BG_COLOR)
             self.all_sprites.draw_custom(self.player.rect.center)
+
+            bullets = self.bullet_sprites.sprites()
+            for bullet in bullets:
+                if pygame.sprite.spritecollide(bullet, self.enemy_sprites, True, pygame.sprite.collide_mask):
+                    self.impact_sound.play()
+                    bullet.kill()
+
+            # game over
+            if pygame.sprite.spritecollide(self.player, self.enemy_sprites, False, pygame.sprite.collide_mask):
+                self.running = False
 
             pygame.display.update()
 
